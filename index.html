@@ -509,9 +509,9 @@ footer {
       </div>
     </div>
     <div class="fade-in">
-      <form class="contato-form" action="https://formspree.io/f/xlgknenp" method="POST">
+      <form id="contact-form" class="contato-form" action="https://formspree.io/f/xlgknenp" method="POST">
         <input type="hidden" name="_subject" value="Novo contato - SS Tecnologia">
-        <input type="hidden" name="_next" value="https://sstecnologia2026.github.io/sstecnologia?enviado=true">
+        <input type="hidden" name="_next" value="https://www.sstecnologia.net/?enviado=true">
         <div class="form-row">
           <div class="form-group">
             <label>Nome *</label>
@@ -540,6 +540,7 @@ footer {
           <textarea placeholder="Conte-nos sobre seu negócio e como podemos ajudar..." name="mensagem"></textarea>
         </div>
         <button type="submit" class="btn-enviar">Enviar Mensagem →</button>
+        <div id="form-msg" style="display:none; margin-top:1rem; padding:0.9rem 1.2rem; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.95rem;"></div>
       </form>
     </div>
   </div>
@@ -560,15 +561,46 @@ footer {
 </footer>
 
 <script>
-// Mensagem de sucesso após envio do formulário
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('enviado') === 'true') {
-  window.addEventListener('load', function() {
-    const banner = document.createElement('div');
-    banner.style.cssText = 'position:fixed;top:80px;right:20px;z-index:999;background:linear-gradient(135deg,#1a6e3a,#2d9e5a);color:#fff;padding:1rem 1.5rem;border-radius:12px;font-family:DM Sans,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,0.3);';
-    banner.innerHTML = '&#10003; Mensagem enviada com sucesso!';
-    document.body.appendChild(banner);
-    setTimeout(function() { banner.remove(); }, 5000);
+// Envio do formulário de contato via AJAX (permanece no site, sem redirecionar para o Formspree)
+const contactForm = document.getElementById('contact-form');
+if (contactForm) {
+  const formMsg = document.getElementById('form-msg');
+  const submitBtn = contactForm.querySelector('.btn-enviar');
+  const originalBtnText = submitBtn.textContent;
+
+  contactForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+    formMsg.style.display = 'none';
+
+    const data = new FormData(contactForm);
+
+    fetch(contactForm.action, {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(function (response) {
+      if (response.ok) {
+        contactForm.reset();
+        formMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.9rem 1.2rem; border-radius:10px; font-family:\'DM Sans\',sans-serif; font-size:0.95rem; background:linear-gradient(135deg,#1a6e3a,#2d9e5a); color:#fff;';
+        formMsg.innerHTML = '&#10003; Mensagem enviada com sucesso! Em breve entraremos em contato.';
+      } else {
+        return response.json().then(function (result) {
+          throw new Error((result && result.errors) ? result.errors.map(function (er) { return er.message; }).join(', ') : 'Erro ao enviar.');
+        });
+      }
+    })
+    .catch(function () {
+      formMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.9rem 1.2rem; border-radius:10px; font-family:\'DM Sans\',sans-serif; font-size:0.95rem; background:linear-gradient(135deg,#8e2a2a,#b23a3a); color:#fff;';
+      formMsg.innerHTML = '&#10007; Não foi possível enviar sua mensagem. Tente novamente ou fale conosco pelo WhatsApp.';
+    })
+    .finally(function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
+    });
   });
 }
 
