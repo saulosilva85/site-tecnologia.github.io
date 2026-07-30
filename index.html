@@ -510,7 +510,7 @@ footer {
     </div>
     <div class="fade-in">
       <form id="contact-form" class="contato-form" action="https://formspree.io/f/xlgknenp" method="POST">
-        <input type="hidden" name="_subject" value="Novo contato - SS Tecnologia">
+        <input type="hidden" name="_subject" id="subject-field" value="Novo contato - SS Tecnologia">
         <input type="hidden" name="_next" value="https://www.sstecnologia.net/?enviado=true">
         <div class="form-row">
           <div class="form-group">
@@ -593,6 +593,14 @@ if (contactForm) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando...';
     formMsg.style.display = 'none';
+
+    // Assunto dinâmico com o nome do cliente, para o Gmail não agrupar
+    // vários contatos diferentes na mesma conversa (thread)
+    const nomeCliente = contactForm.querySelector('[name="nome"]').value.trim();
+    const subjectField = document.getElementById('subject-field');
+    subjectField.value = nomeCliente
+      ? 'Novo contato de ' + nomeCliente + ' - SS Tecnologia'
+      : 'Novo contato - SS Tecnologia';
 
     const data = new FormData(contactForm);
 
